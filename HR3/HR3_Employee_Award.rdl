@@ -708,13 +708,18 @@
         <CommandText>SELECT DISTINCT 'import_EMPAW' AS 'record_key', v.Column04 AS 'emp_no', 1 AS 'type_id', v.Column14 AS 'eff_from_date', ISNULL
                              ((SELECT        MIN(DATEADD(DD, - 1, CONVERT(datetime, Column03, 103))) AS Expr1
                                  FROM            gi_employee_date_range AS v1
-                                 WHERE        (Column02 = v.Column04) AND (CONVERT(datetime, Column03, 103) &gt; CONVERT(datetime, v.Column14, 103))), '2049-01-01') AS 'eff_to_date', 
-                         v.Column39 AS 'employment_type', CASE WHEN v.Column20 IS NULL OR
-                         v.Column20 = '' THEN 'INDV' ELSE v.Column20 END AS 'award', CASE WHEN a.payroll_ref IS NULL OR
-                         a.payroll_ref = '' THEN 'SALARY' ELSE a.payroll_ref END AS 'award_classification', v.Column41 AS 'emp_payroll_run', 'Y' AS 'above_award_rate_flg', 
-                         CONVERT(numeric(30, 5), ISNULL(v.Column24, 0)) AS 'rate'
+                                 WHERE        (Column02 = v.Column04) AND (CONVERT(datetime, Column03, 103) &gt; CONVERT(datetime, v.Column14, 103))), ISNULL
+                             ((SELECT        MAX(CONVERT(datetime, Column04, 103)) AS Expr1
+                                 FROM            gi_employee_date_range AS v1
+                                 WHERE        (Column02 = v.Column04)), '2049-01-01')) AS 'eff_to_date', v.Column39 AS 'employment_type', CASE WHEN v.Column20 IS NULL OR
+                         v.Column20 = 'NULL' OR
+                         v.Column20 = '' THEN 'INDV' ELSE v.Column20 END AS 'award', CASE WHEN a.payroll_ref IS NULL THEN 'SALARY' ELSE a.payroll_ref END AS 'award_classification',
+                          v.Column41 AS 'emp_payroll_run', 'Y' AS 'above_award_rate_flg', CONVERT(numeric(30, 5), ISNULL(v.Column24, 0)) AS 'rate'
 FROM            gi_employee_master AS v LEFT OUTER JOIN
-                         award_classification AS a ON v.Column22 = a.award_classification_desc COLLATE DATABASE_DEFAULT</CommandText>
+                         award_classification AS a ON v.Column22 = a.award_classification_desc COLLATE DATABASE_DEFAULT
+WHERE        (DATEADD(MM, 1, CONVERT(datetime, CASE WHEN v.Column25 IS NULL OR
+                         v.Column25 = 'NULL' OR
+                         v.Column25 = '' THEN '2049-01-01' ELSE v.Column25 END, 103)) &gt; GETDATE())</CommandText>
       </Query>
       <Fields>
         <Field Name="emp_no">
